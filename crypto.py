@@ -8,9 +8,11 @@ BLOCK_SIZE=16
 pad=lambda s: s+((BLOCK_SIZE-len(s)%BLOCK_SIZE)*chr(BLOCK_SIZE-len(s)%BLOCK_SIZE)).encode()
 unpad = lambda s : s[:-ord(s[len(s)-1:])]
 
-def str2key(str, salt=None):
+COUNT=5000
+
+def str2key(str, salt=None, count=COUNT):
 	if not salt: salt=Random.new().read(BLOCK_SIZE)
-	return salt, PBKDF2(str, salt, prf=lambda password, salt: HMAC.new(password, salt, SHA256).digest())
+	return salt, PBKDF2(str, salt,  count=count, prf=lambda password, salt: HMAC.new(password, salt, SHA256).digest())
 
 def encrypt(data, key):
 	
@@ -31,7 +33,7 @@ def encrypt(data, key):
 	
 	key2=SHA256.new(key).digest()
 	
-	return salt+HMAC.new(key2, ct, SHA256).digest()+ct
+	return str(COUNT).encode()+b'#'+salt+HMAC.new(key2, ct, SHA256).digest()+ct
 
 def decrypt(data, key):
 	
@@ -42,9 +44,13 @@ def decrypt(data, key):
 		print('no decryption key!')
 		return None
 	
+	count, data=data.split(b'#', 1)
+	
+	count=int(count)
+	
 	salt=data[:16]
 	
-	salt, key=str2key(key, salt)
+	salt, key=str2key(key, salt, count)
 		
 	hmac1=data[16:48]
 	ct=data[48:]
