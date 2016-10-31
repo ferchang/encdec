@@ -12,7 +12,8 @@ COUNT=5000
 
 def str2key(str, salt=None, count=COUNT):
 	if not salt: salt=Random.new().read(BLOCK_SIZE)
-	return salt, PBKDF2(str, salt,  count=count, prf=lambda password, salt: HMAC.new(password, salt, SHA256).digest())
+	keys=PBKDF2(str, salt,  dkLen=32, count=count, prf=lambda password, salt: HMAC.new(password, salt, SHA256).digest())
+	return salt, keys[:16], keys[16:]
 
 def encrypt(data, key):
 	
@@ -23,15 +24,13 @@ def encrypt(data, key):
 		print('no encryption key!')
 		return None
 	
-	salt, key=str2key(key)
+	salt, key1, key2=str2key(key)
 	
 	data=pad(data)
 	iv=Random.new().read(BLOCK_SIZE)
-	aes=AES.new(key, AES.MODE_CBC, iv)
+	aes=AES.new(key1, AES.MODE_CBC, iv)
 	
 	ct=iv+aes.encrypt(data)
-	
-	key2=SHA256.new(key).digest()
 	
 	return str(COUNT).encode()+b'#'+salt+HMAC.new(key2, ct, SHA256).digest()+ct
 
@@ -50,17 +49,15 @@ def decrypt(data, key):
 	
 	salt=data[:16]
 	
-	salt, key=str2key(key, salt, count)
+	salt, key1, key2=str2key(key, salt, count)
 		
 	hmac1=data[16:48]
 	ct=data[48:]
-	
-	key2=SHA256.new(key).digest()
 	
 	if not compare_digest(HMAC.new(key2, ct, SHA256).digest(), hmac1):
 		print('hmac verification failed!')
 		return None
 	
 	iv=ct[:BLOCK_SIZE]
-	aes=AES.new(key, AES.MODE_CBC, iv)
+	aes=AES.new(key1, AES.MODE_CBC, iv)
 	return unpad(aes.decrypt(ct[BLOCK_SIZE:]))
