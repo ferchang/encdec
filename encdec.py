@@ -1,9 +1,12 @@
+from ask_file_overwrite import AskFileOverwrite
 from tkinter import *
 import os
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 from crypto import *
 import tkinter.messagebox
+
+EXT='.ency'
 
 class Application(Frame):
 	
@@ -33,18 +36,24 @@ class Application(Frame):
 		self.lastFileOpenDir=os.path.dirname(filename)
 		with open(filename, mode='rb') as f: data=f.read()
 		if command=='encrypt':
-			if filename.endswith('.encrypted'):
+			if filename.endswith(EXT):
 				tkinter.messagebox.showerror('Error', 'File already encrypted!')
 				return
 			ciphertext=encrypt(data, self.password)
-			with open(filename+'.encrypted', mode='wb') as f: f.write(ciphertext)
+			with open(filename+EXT, mode='wb') as f: f.write(ciphertext)
 		else:
 			plaintext=decrypt(data, self.password)
 			if plaintext==None:
 				tkinter.messagebox.showerror('Error', 'Decryption error!')
 				return
-			if filename.endswith('.encrypted'): filename=filename[:-10]
-			with open(filename, mode='wb') as f: f.write(plaintext)
+			if filename.endswith(EXT): filename=filename[:-len(EXT)]
+			os.chdir(os.path.dirname(filename))
+			filename=os.path.basename(filename.encode()).decode()
+			if os.path.exists(filename): 
+				filename=AskFileOverwrite(self, filename).getResult()
+			if filename:
+				with open(filename, mode='wb') as f: f.write(plaintext)
+			else: print('abort')
 
 #-------------------------------------------
 			
