@@ -1,0 +1,2 @@
+- about button: email + algorithm
+- warn when encrypted output file exists
