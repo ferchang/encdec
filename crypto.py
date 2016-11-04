@@ -40,18 +40,14 @@ def encrypt(data, key, algo):
 	return str(block_size).encode()+b'#'+str(COUNT).encode()+b'#'+salt+HMAC.new(key2, ct, SHA256).digest()+ct
 
 def decrypt(data, key):
-	
-	if not len(data):
-		print('no data to decrypt!')
-		return None
-	if not len(key):
-		print('no decryption key!')
-		return None
-	
-	block_size, count, data=data.split(b'#', 2)
-	
-	count=int(count)
-	block_size=int(block_size)
+
+	try:
+		block_size, count, data=data.split(b'#', 2)
+		count=int(count)
+		block_size=int(block_size)
+	except Exception as e:
+		print('--------------------\n'+str(e)+'\n--------------------')
+		return None, 'Seems the structure of the file\ndoes not conform to an encrypted file!'
 	
 	salt=data[:SALT_LEN]
 	
@@ -62,8 +58,8 @@ def decrypt(data, key):
 	
 	if not compare_digest(HMAC.new(key2, ct, SHA256).digest(), hmac1):
 		print('hmac verification failed!')
-		return None
+		return None, 'HMAC verification failed!'
 	
 	iv=ct[:AES.block_size]
 	aes=AES.new(key1, AES.MODE_CBC, iv)
-	return unpad(aes.decrypt(ct[AES.block_size:]))
+	return unpad(aes.decrypt(ct[AES.block_size:])), ''

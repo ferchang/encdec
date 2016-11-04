@@ -24,8 +24,6 @@ class Application(Frame):
 		w=OptionMenu(container, self.algo, 'AES-128', 'AES-256')
 		w.pack(side=TOP, padx=5, pady=5, fill=BOTH)
 		
-		#-------------------------
-		
 		btn=Button(container, text='Encrypt')
 		btn["command"]=lambda command='encrypt': self.btnClick(command)
 		btn.pack(side=TOP, padx=5, pady=5, fill=BOTH)
@@ -34,14 +32,27 @@ class Application(Frame):
 		btn["command"]=lambda command='decrypt': self.btnClick(command)
 		btn.pack(side=TOP, padx=5, pady=5, fill=BOTH)
 		
+		btn=Button(container, text='About')
+		btn["command"]=lambda: self.about()
+		btn.pack(side=TOP, padx=5, pady=5, fill=BOTH)
+		
 		container.pack()
 		
 #-------------------------------------------
+
+	def about(self):
+		msg='Program by: hmz2627 -=At=- gmail -=Dot=- com'
+		msg+='\n\nEncryption algorithm: PBKDF2 + AES(CBC) + HMAC-SHA256'
+		tkinter.messagebox.showinfo('About', msg)
+
+#-------------------------------------------
+
 	def getPassword(self):
 		password=simpledialog.askstring('Password', 'Enter password:')
 		if not password: return False
 		self.password=password
 		return True
+		
 #-------------------------------------------
 
 	def getExtension(self):
@@ -67,9 +78,9 @@ class Application(Frame):
 				with open(filename, mode='wb') as f: f.write(ciphertext)
 			else: print('abort')
 		else:
-			plaintext=decrypt(data, self.password)
+			plaintext, err_msg=decrypt(data, self.password)
 			if plaintext==None:
-				tkinter.messagebox.showerror('Error', 'Decryption error!')
+				tkinter.messagebox.showerror('Decryption error!', err_msg)
 				return
 			if filename.endswith(self.getExtension()): filename=filename[:-len(self.getExtension())]
 			filename=os.path.basename(filename.encode()).decode()
