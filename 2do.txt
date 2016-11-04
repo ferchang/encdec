@@ -1,1 +1,2 @@
 - about button: email + algorithm
+- detect non-encrypted files

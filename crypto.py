@@ -24,13 +24,6 @@ def str2key(str, salt=None, count=COUNT, block_size=16):
 
 def encrypt(data, key, algo):
 	
-	if not len(data):
-		print('no data to encrypt!')
-		return None
-	if not len(key):
-		print('no encryption key!')
-		return None
-	
 	if algo=='AES-128': block_size=16
 	else: block_size=32
 	
