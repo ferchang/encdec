@@ -27,8 +27,6 @@ def encrypt(data, key, algo):
 	if algo=='AES-128': block_size=16
 	else: block_size=32
 	
-	print('block_size:', block_size)
-	
 	salt, key1, key2=str2key(key, block_size=block_size)
 	
 	data=pad(data, block_size)

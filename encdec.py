@@ -1,3 +1,4 @@
+import configparser
 from ask_file_overwrite import AskFileOverwrite
 from tkinter import *
 import os
@@ -5,6 +6,7 @@ from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 from crypto import *
 import tkinter.messagebox
+import sys
 
 EXT128='.aes128'
 EXT256='.aes256'
@@ -61,6 +63,14 @@ class Application(Frame):
 
 #-------------------------------------------
 
+	def writeConfigs(self):
+		self.config.set('general', 'default_algo', self.algo.get())
+		file=open(sys.path[0]+'/config.ini', 'w', encoding='utf-8')
+		self.config.write(file)
+		file.close()
+
+#-------------------------------------------
+
 	def btnClick(self, command):
 		if not self.password and not self.getPassword(): return
 		filename=askopenfilename(initialdir=self.lastFileOpenDir)
@@ -68,6 +78,7 @@ class Application(Frame):
 		self.lastFileOpenDir=os.path.dirname(filename)
 		with open(filename, mode='rb') as f: data=f.read()
 		os.chdir(os.path.dirname(filename))
+		self.writeConfigs()
 		if command=='encrypt':
 			ciphertext=encrypt(data, self.password, self.algo.get())
 			filename=os.path.basename(filename.encode()).decode()
@@ -97,8 +108,11 @@ class Application(Frame):
 		self.password=''
 		self.lastFileOpenDir=''
 		
+		self.config=configparser.RawConfigParser()
+		self.config.read(sys.path[0]+'/config.ini', encoding='utf-8')
+		
 		self.algo=StringVar()
-		self.algo.set('AES-128')
+		self.algo.set(self.config.get('general', 'default_algo'))
 	
 		Frame.__init__(self, master)
 		self.createWidgets()
