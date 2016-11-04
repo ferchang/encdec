@@ -6,11 +6,7 @@ from Crypto.Protocol.KDF import PBKDF2
 
 #------------------------------
 
-BLOCK_SIZE=32 #16 => AES-128 , 32 => AES-256
-
 COUNT=1000 #PBKDF2  repeat count
-
-#------------------------------
 
 SALT_LEN=16 #PBKDF2  salt length
 

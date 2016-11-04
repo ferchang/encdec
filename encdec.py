@@ -6,7 +6,8 @@ from tkinter.filedialog import askopenfilename
 from crypto import *
 import tkinter.messagebox
 
-EXT='.ency'
+EXT128='.aes128'
+EXT256='.aes256'
 
 class Application(Frame):
 	
@@ -43,25 +44,34 @@ class Application(Frame):
 		return True
 #-------------------------------------------
 
+	def getExtension(self):
+		if self.algo.get()=='AES-128': return EXT128
+		else: return EXT256
+
+#-------------------------------------------
+
 	def btnClick(self, command):
 		if not self.password and not self.getPassword(): return
 		filename=askopenfilename(initialdir=self.lastFileOpenDir)
 		if not filename: return
 		self.lastFileOpenDir=os.path.dirname(filename)
 		with open(filename, mode='rb') as f: data=f.read()
+		os.chdir(os.path.dirname(filename))
 		if command=='encrypt':
-			if filename.endswith(EXT):
-				tkinter.messagebox.showerror('Error', 'File already encrypted!')
-				return
 			ciphertext=encrypt(data, self.password, self.algo.get())
-			with open(filename+EXT, mode='wb') as f: f.write(ciphertext)
+			filename=os.path.basename(filename.encode()).decode()
+			filename=filename+self.getExtension()
+			if os.path.exists(filename): 
+				filename=AskFileOverwrite(self, filename).getResult()
+			if filename:
+				with open(filename, mode='wb') as f: f.write(ciphertext)
+			else: print('abort')
 		else:
 			plaintext=decrypt(data, self.password)
 			if plaintext==None:
 				tkinter.messagebox.showerror('Error', 'Decryption error!')
 				return
-			if filename.endswith(EXT): filename=filename[:-len(EXT)]
-			os.chdir(os.path.dirname(filename))
+			if filename.endswith(self.getExtension()): filename=filename[:-len(self.getExtension())]
 			filename=os.path.basename(filename.encode()).decode()
 			if os.path.exists(filename): 
 				filename=AskFileOverwrite(self, filename).getResult()
