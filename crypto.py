@@ -35,24 +35,25 @@ def encrypt(data, key, algo):
 	
 	ct=iv+aes.encrypt(data)
 	
-	return str(block_size).encode()+b'#'+str(COUNT).encode()+b'#'+salt+HMAC.new(key2, ct, SHA256).digest()+ct
+	return str(block_size).encode()+b'#'+str(COUNT).encode()+b'#'+str(SALT_LEN).encode()+b'#'+salt+HMAC.new(key2, ct, SHA256).digest()+ct
 
 def decrypt(data, key):
 
 	try:
-		block_size, count, data=data.split(b'#', 2)
+		block_size, count, salt_len, data=data.split(b'#', 3)
 		count=int(count)
 		block_size=int(block_size)
+		salt_len=int(salt_len)
 	except Exception as e:
 		print('--------------------\n'+str(e)+'\n--------------------')
 		return None, 'Seems the structure of the file\ndoes not conform to an encrypted file!'
 	
-	salt=data[:SALT_LEN]
+	salt=data[:salt_len]
 	
 	salt, key1, key2=str2key(key, salt, count, block_size=block_size)
 		
-	hmac1=data[SALT_LEN:SALT_LEN+HMAC_LEN]
-	ct=data[SALT_LEN+HMAC_LEN:]
+	hmac1=data[salt_len:salt_len+HMAC_LEN]
+	ct=data[salt_len+HMAC_LEN:]
 	
 	if not compare_digest(HMAC.new(key2, ct, SHA256).digest(), hmac1):
 		print('hmac verification failed!')
